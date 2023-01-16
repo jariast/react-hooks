@@ -34,11 +34,29 @@ function Board({squares, squareClickHandler}) {
   )
 }
 
-function Game() {
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
-    Array(9).fill(null),
+const MoveButton = ({index, currentStep, clickHandler}) => {
+  const isCurrent = currentStep === index
+  const text =
+    index === 0
+      ? ` Game Start ${isCurrent ? ' (current)' : ''}`
+      : ` Go to Move #${index}${isCurrent ? ' (current)' : ''}`
+
+  return (
+    <li>
+      <button disabled={isCurrent} onClick={() => clickHandler(index)}>
+        {text}
+      </button>
+    </li>
   )
+}
+
+function Game() {
+  const [history, setHistory] = useLocalStorageState('history', [
+    Array(9).fill(null),
+  ])
+  const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', 0)
+
+  const squares = history[currentStep]
 
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
@@ -52,16 +70,32 @@ function Game() {
     const squaresCopy = [...squares]
 
     squaresCopy[square] = nextValue
-    setSquares(squaresCopy)
+    const newHistory = history.slice(0, currentStep + 1)
+    newHistory.push(squaresCopy)
+    setHistory(newHistory)
+    setCurrentStep(c => c + 1)
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
+    setHistory([Array(9).fill(null)])
+    setCurrentStep(0)
   }
+
+  const moves = history.map((_, i) => {
+    return (
+      <MoveButton
+        key={i}
+        index={i}
+        currentStep={currentStep}
+        clickHandler={index => setCurrentStep(index)}
+      ></MoveButton>
+    )
+  })
 
   return (
     <div className="game">
       <div className="game-board">
+        <span>Current step {currentStep}</span>
         <Board squares={squares} squareClickHandler={onSquareClick} />
         <button className="restart" onClick={restart}>
           restart
@@ -69,6 +103,7 @@ function Game() {
       </div>
       <div className="game-info">
         <div className="status">{status}</div>
+        <ol>{moves}</ol>
       </div>
     </div>
   )
