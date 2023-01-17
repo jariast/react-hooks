@@ -9,7 +9,7 @@ import {
   PokemonForm,
   PokemonInfoFallback,
 } from '../pokemon'
-import {ErrorBoundary} from './ErroBoundary'
+import {ErrorBoundary} from './ErrorBoundary'
 
 function PokemonInfo({pokemonName}) {
   const [state, setState] = React.useState({
@@ -72,7 +72,7 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary>
+        <ErrorBoundary key={pokemonName}>
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
