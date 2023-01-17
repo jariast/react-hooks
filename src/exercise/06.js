@@ -9,36 +9,39 @@ import {
   PokemonForm,
   PokemonInfoFallback,
 } from '../pokemon'
+import {ErrorBoundary} from './ErroBoundary'
 
 function PokemonInfo({pokemonName}) {
-  const [pokemonInfo, setPokemonInfo] = React.useState({
+  const [state, setState] = React.useState({
     status: 'idle',
     pokemon: null,
     error: null,
   })
-  const {status, pokemon, error} = pokemonInfo
+  const {status, pokemon, error} = state
 
   React.useEffect(() => {
     if (!pokemonName) {
       return
     }
-    setPokemonInfo({status: 'pending'})
+    setState({status: 'pending'})
     fetchPokemon(pokemonName)
       .then(pokemonData => {
-        setPokemonInfo({status: 'resolved', pokemon: pokemonData})
+        setState({status: 'resolved', pokemon: pokemonData})
       })
       .catch(error => {
-        setPokemonInfo({status: 'rejected', error})
+        setState({status: 'rejected', error})
       })
   }, [pokemonName])
 
   if (status === 'rejected') {
-    return (
-      <div role="alert">
-        There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-      </div>
-    )
+    throw error
+
+    // return (
+    //   <div role="alert">
+    //     There was an error:{' '}
+    //     <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+    //   </div>
+    // )
   }
 
   if (status === 'idle') {
@@ -69,7 +72,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary>
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
